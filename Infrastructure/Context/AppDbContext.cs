@@ -17,84 +17,60 @@ public partial class AppDbContext : DbContext
     }
 
     public virtual DbSet<AggregatedCounter> AggregatedCounters { get; set; }
-
     public virtual DbSet<Client> Clients { get; set; }
-
     public virtual DbSet<Counter> Counters { get; set; }
-
     public virtual DbSet<Hash> Hashes { get; set; }
-
     public virtual DbSet<Job> Jobs { get; set; }
-
     public virtual DbSet<JobParameter> JobParameters { get; set; }
-
     public virtual DbSet<JobQueue> JobQueues { get; set; }
-
     public virtual DbSet<List> Lists { get; set; }
-
     public virtual DbSet<Order> Orders { get; set; }
-
     public virtual DbSet<OrderDetail> OrderDetails { get; set; }
-
     public virtual DbSet<Product> Products { get; set; }
-
     public virtual DbSet<Schema> Schemas { get; set; }
-
     public virtual DbSet<Server> Servers { get; set; }
-
     public virtual DbSet<Set> Sets { get; set; }
-
     public virtual DbSet<State> States { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Server=localhost;Database=LINQExample;Trusted_Connection=True;TrustServerCertificate=True;");
+    // ✅ OnConfiguring eliminado — la config viene de Program.cs
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        // Crear el esquema HangFire en PostgreSQL
         modelBuilder.Entity<AggregatedCounter>(entity =>
         {
             entity.HasKey(e => e.Key).HasName("PK_HangFire_CounterAggregated");
-
             entity.ToTable("AggregatedCounter", "HangFire");
-
-            entity.HasIndex(e => e.ExpireAt, "IX_HangFire_AggregatedCounter_ExpireAt").HasFilter("([ExpireAt] IS NOT NULL)");
-
+            // ✅ HasFilter con sintaxis PostgreSQL
+            entity.HasIndex(e => e.ExpireAt, "IX_HangFire_AggregatedCounter_ExpireAt")
+                  .HasFilter("\"ExpireAt\" IS NOT NULL");
             entity.Property(e => e.Key).HasMaxLength(100);
-            entity.Property(e => e.ExpireAt).HasColumnType("datetime");
+            // ✅ datetime → timestamp
+            entity.Property(e => e.ExpireAt).HasColumnType("timestamp");
         });
 
         modelBuilder.Entity<Client>(entity =>
         {
             entity.HasKey(e => e.ClientId).HasName("PK__Clients__E67E1A247F564C68");
-
-            entity.Property(e => e.Email)
-                .HasMaxLength(100)
-                .IsUnicode(false);
-            entity.Property(e => e.Name)
-                .HasMaxLength(100)
-                .IsUnicode(false);
+            entity.Property(e => e.Email).HasMaxLength(100); // ✅ IsUnicode eliminado
+            entity.Property(e => e.Name).HasMaxLength(100);
         });
 
         modelBuilder.Entity<Counter>(entity =>
         {
             entity.HasKey(e => new { e.Key, e.Id }).HasName("PK_HangFire_Counter");
-
             entity.ToTable("Counter", "HangFire");
-
             entity.Property(e => e.Key).HasMaxLength(100);
             entity.Property(e => e.Id).ValueGeneratedOnAdd();
-            entity.Property(e => e.ExpireAt).HasColumnType("datetime");
+            entity.Property(e => e.ExpireAt).HasColumnType("timestamp");
         });
 
         modelBuilder.Entity<Hash>(entity =>
         {
             entity.HasKey(e => new { e.Key, e.Field }).HasName("PK_HangFire_Hash");
-
             entity.ToTable("Hash", "HangFire");
-
-            entity.HasIndex(e => e.ExpireAt, "IX_HangFire_Hash_ExpireAt").HasFilter("([ExpireAt] IS NOT NULL)");
-
+            entity.HasIndex(e => e.ExpireAt, "IX_HangFire_Hash_ExpireAt")
+                  .HasFilter("\"ExpireAt\" IS NOT NULL");
             entity.Property(e => e.Key).HasMaxLength(100);
             entity.Property(e => e.Field).HasMaxLength(100);
         });
@@ -102,26 +78,21 @@ public partial class AppDbContext : DbContext
         modelBuilder.Entity<Job>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK_HangFire_Job");
-
             entity.ToTable("Job", "HangFire");
-
-            entity.HasIndex(e => e.ExpireAt, "IX_HangFire_Job_ExpireAt").HasFilter("([ExpireAt] IS NOT NULL)");
-
-            entity.HasIndex(e => e.StateName, "IX_HangFire_Job_StateName").HasFilter("([StateName] IS NOT NULL)");
-
-            entity.Property(e => e.CreatedAt).HasColumnType("datetime");
-            entity.Property(e => e.ExpireAt).HasColumnType("datetime");
+            entity.HasIndex(e => e.ExpireAt, "IX_HangFire_Job_ExpireAt")
+                  .HasFilter("\"ExpireAt\" IS NOT NULL");
+            entity.HasIndex(e => e.StateName, "IX_HangFire_Job_StateName")
+                  .HasFilter("\"StateName\" IS NOT NULL");
+            entity.Property(e => e.CreatedAt).HasColumnType("timestamp");
+            entity.Property(e => e.ExpireAt).HasColumnType("timestamp");
             entity.Property(e => e.StateName).HasMaxLength(20);
         });
 
         modelBuilder.Entity<JobParameter>(entity =>
         {
             entity.HasKey(e => new { e.JobId, e.Name }).HasName("PK_HangFire_JobParameter");
-
             entity.ToTable("JobParameter", "HangFire");
-
             entity.Property(e => e.Name).HasMaxLength(40);
-
             entity.HasOne(d => d.Job).WithMany(p => p.JobParameters)
                 .HasForeignKey(d => d.JobId)
                 .HasConstraintName("FK_HangFire_JobParameter_Job");
@@ -130,33 +101,27 @@ public partial class AppDbContext : DbContext
         modelBuilder.Entity<JobQueue>(entity =>
         {
             entity.HasKey(e => new { e.Queue, e.Id }).HasName("PK_HangFire_JobQueue");
-
             entity.ToTable("JobQueue", "HangFire");
-
             entity.Property(e => e.Queue).HasMaxLength(50);
             entity.Property(e => e.Id).ValueGeneratedOnAdd();
-            entity.Property(e => e.FetchedAt).HasColumnType("datetime");
+            entity.Property(e => e.FetchedAt).HasColumnType("timestamp");
         });
 
         modelBuilder.Entity<List>(entity =>
         {
             entity.HasKey(e => new { e.Key, e.Id }).HasName("PK_HangFire_List");
-
             entity.ToTable("List", "HangFire");
-
-            entity.HasIndex(e => e.ExpireAt, "IX_HangFire_List_ExpireAt").HasFilter("([ExpireAt] IS NOT NULL)");
-
+            entity.HasIndex(e => e.ExpireAt, "IX_HangFire_List_ExpireAt")
+                  .HasFilter("\"ExpireAt\" IS NOT NULL");
             entity.Property(e => e.Key).HasMaxLength(100);
             entity.Property(e => e.Id).ValueGeneratedOnAdd();
-            entity.Property(e => e.ExpireAt).HasColumnType("datetime");
+            entity.Property(e => e.ExpireAt).HasColumnType("timestamp");
         });
 
         modelBuilder.Entity<Order>(entity =>
         {
             entity.HasKey(e => e.OrderId).HasName("PK__Orders__C3905BCFB488B5D6");
-
-            entity.Property(e => e.OrderDate).HasColumnType("datetime");
-
+            entity.Property(e => e.OrderDate).HasColumnType("timestamp");
             entity.HasOne(d => d.Client).WithMany(p => p.Orders)
                 .HasForeignKey(d => d.ClientId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -166,12 +131,10 @@ public partial class AppDbContext : DbContext
         modelBuilder.Entity<OrderDetail>(entity =>
         {
             entity.HasKey(e => e.OrderDetailId).HasName("PK__OrderDet__D3B9D36CFB411A9A");
-
             entity.HasOne(d => d.Order).WithMany(p => p.OrderDetails)
                 .HasForeignKey(d => d.OrderId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_orderdetails_orders");
-
             entity.HasOne(d => d.Product).WithMany(p => p.OrderDetails)
                 .HasForeignKey(d => d.ProductId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -181,65 +144,48 @@ public partial class AppDbContext : DbContext
         modelBuilder.Entity<Product>(entity =>
         {
             entity.HasKey(e => e.ProductId).HasName("PK__Products__B40CC6CD9448BD62");
-
-            entity.Property(e => e.Description)
-                .HasMaxLength(100)
-                .IsUnicode(false);
-            entity.Property(e => e.Name)
-                .HasMaxLength(100)
-                .IsUnicode(false);
-            entity.Property(e => e.Price).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.Description).HasMaxLength(100);
+            entity.Property(e => e.Name).HasMaxLength(100);
+            entity.Property(e => e.Price).HasColumnType("numeric(10, 2)"); // ✅ decimal → numeric
         });
 
         modelBuilder.Entity<Schema>(entity =>
         {
             entity.HasKey(e => e.Version).HasName("PK_HangFire_Schema");
-
             entity.ToTable("Schema", "HangFire");
-
             entity.Property(e => e.Version).ValueGeneratedNever();
         });
 
         modelBuilder.Entity<Server>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK_HangFire_Server");
-
             entity.ToTable("Server", "HangFire");
-
             entity.HasIndex(e => e.LastHeartbeat, "IX_HangFire_Server_LastHeartbeat");
-
             entity.Property(e => e.Id).HasMaxLength(200);
-            entity.Property(e => e.LastHeartbeat).HasColumnType("datetime");
+            entity.Property(e => e.LastHeartbeat).HasColumnType("timestamp");
         });
 
         modelBuilder.Entity<Set>(entity =>
         {
             entity.HasKey(e => new { e.Key, e.Value }).HasName("PK_HangFire_Set");
-
             entity.ToTable("Set", "HangFire");
-
-            entity.HasIndex(e => e.ExpireAt, "IX_HangFire_Set_ExpireAt").HasFilter("([ExpireAt] IS NOT NULL)");
-
+            entity.HasIndex(e => e.ExpireAt, "IX_HangFire_Set_ExpireAt")
+                  .HasFilter("\"ExpireAt\" IS NOT NULL");
             entity.HasIndex(e => new { e.Key, e.Score }, "IX_HangFire_Set_Score");
-
             entity.Property(e => e.Key).HasMaxLength(100);
             entity.Property(e => e.Value).HasMaxLength(256);
-            entity.Property(e => e.ExpireAt).HasColumnType("datetime");
+            entity.Property(e => e.ExpireAt).HasColumnType("timestamp");
         });
 
         modelBuilder.Entity<State>(entity =>
         {
             entity.HasKey(e => new { e.JobId, e.Id }).HasName("PK_HangFire_State");
-
             entity.ToTable("State", "HangFire");
-
             entity.HasIndex(e => e.CreatedAt, "IX_HangFire_State_CreatedAt");
-
             entity.Property(e => e.Id).ValueGeneratedOnAdd();
-            entity.Property(e => e.CreatedAt).HasColumnType("datetime");
+            entity.Property(e => e.CreatedAt).HasColumnType("timestamp");
             entity.Property(e => e.Name).HasMaxLength(20);
             entity.Property(e => e.Reason).HasMaxLength(100);
-
             entity.HasOne(d => d.Job).WithMany(p => p.States)
                 .HasForeignKey(d => d.JobId)
                 .HasConstraintName("FK_HangFire_State_Job");

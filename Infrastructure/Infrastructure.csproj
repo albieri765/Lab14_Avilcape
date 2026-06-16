@@ -10,11 +10,7 @@
       <PackageReference Include="ClosedXML" Version="0.105.0" />
       <PackageReference Include="FreeSpire.Doc" Version="14.4.0" />
       <PackageReference Include="MediatR" Version="14.1.0" />
-      <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.6">
-        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-        <PrivateAssets>all</PrivateAssets>
-      </PackageReference>
-      <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.6" />
+      <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
     </ItemGroup>
 
     <ItemGroup>
