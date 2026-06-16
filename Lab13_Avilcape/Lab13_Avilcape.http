@@ -1,0 +1,6 @@
+@Lab13_Avilcape_HostAddress = http://localhost:5173
+
+GET {{Lab13_Avilcape_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
